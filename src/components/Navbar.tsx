@@ -48,7 +48,7 @@ const IconsContainer = styled.div`
   gap: 1rem;
 `;
 
-const Button = styled.button`
+const ButtonLink = styled(Link)`
   padding: 0.5rem 1rem;
   border: 2px solid #555;
   background-color: transparent;
@@ -57,6 +57,8 @@ const Button = styled.button`
   cursor: pointer;
   font-weight: 500;
   transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
 
   &:hover {
     background-color: #555;
@@ -81,8 +83,8 @@ const Navbar: React.FC = () => (
     </SearchContainer>
     <IconsContainer>
       <ShoppingCart />
-      <Button>Sign Up</Button>
-      <Button>Sign In</Button>
+      <ButtonLink to="/signup">Sign Up</ButtonLink>
+      <ButtonLink to="/signin">Sign In</ButtonLink>
     </IconsContainer>
   </NavbarContainer>
 );
