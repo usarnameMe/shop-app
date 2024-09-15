@@ -48,6 +48,22 @@ const IconsContainer = styled.div`
   gap: 1rem;
 `;
 
+const Button = styled.button`
+  padding: 0.5rem 1rem;
+  border: 2px solid #555;
+  background-color: transparent;
+  color: #555;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #555;
+    color: #fff;
+  }
+`;
+
 const Navbar: React.FC = () => (
   <NavbarContainer>
     <Logo>
@@ -65,8 +81,8 @@ const Navbar: React.FC = () => (
     </SearchContainer>
     <IconsContainer>
       <ShoppingCart />
-      <button>Sign Up</button>
-      <button>Sign In</button>
+      <Button>Sign Up</Button>
+      <Button>Sign In</Button>
     </IconsContainer>
   </NavbarContainer>
 );
