@@ -1,53 +1,62 @@
-// Import the functions you need from the SDKs
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { getAnalytics } from 'firebase/analytics';
-import { getFirestore, collection, writeBatch, doc, getDocs, query, CollectionReference } from 'firebase/firestore';
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  sendPasswordResetEmail, 
+  fetchSignInMethodsForEmail 
+} from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  writeBatch, 
+  doc, 
+  getDocs, 
+  query, 
+  CollectionReference 
+} from 'firebase/firestore';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: 'AIzaSyBG3jnj64Mjhg71p3UJM2eXOLPULoRJY-I',
-  authDomain: 'ai-angorythms.firebaseapp.com',
-  projectId: 'ai-angorythms',
-  storageBucket: 'ai-angorythms.appspot.com',
-  messagingSenderId: '570991604636',
-  appId: '1:570991604636:web:d4aacabcb4c50193ea4e59',
-  measurementId: 'G-PQXV5MZJYT', // Optional
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase Analytics (Optional)
-const analytics = getAnalytics(app);
-
-// Initialize Firebase Authentication and set up Google provider
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
-
-// Initialize Firestore
 const db = getFirestore(app);
 
-// Function to save basket items to Firestore
-const saveBasketItems = async (basketItems: any[], userId: string): Promise<void> => {
+interface BasketItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
+const saveBasketItems = async (basketItems: BasketItem[], userId: string): Promise<void> => {
   try {
-    const basketRef = collection(db, "users", userId, "basket") as CollectionReference;
+    const basketRef = collection(db, "users", userId, "basket") as CollectionReference<BasketItem>;
     const batch = writeBatch(db);
     basketItems.forEach((item) => {
-      const docRef = doc(basketRef); // Generate a new document reference
+      const docRef = doc(basketRef, item.id);
       batch.set(docRef, item);
     });
     await batch.commit();
-    console.log("Basket items saved successfully.");
   } catch (error) {
     console.error("Error saving basket items: ", error);
   }
 };
 
-// Function to get basket items from Firestore
-const getBasketItems = async (userId: string): Promise<any[]> => {
+const getBasketItems = async (userId: string): Promise<BasketItem[]> => {
   try {
-    const basketRef = collection(db, "users", userId, "basket");
+    const basketRef = collection(db, "users", userId, "basket") as CollectionReference<BasketItem>;
     const basketQuery = query(basketRef);
     const querySnapshot = await getDocs(basketQuery);
     return querySnapshot.docs.map((doc) => doc.data());
@@ -57,5 +66,14 @@ const getBasketItems = async (userId: string): Promise<any[]> => {
   }
 };
 
-// Export the necessary functions and variables
-export { auth, googleProvider, analytics, signInWithPopup, saveBasketItems, getBasketItems };
+export { 
+  auth, 
+  googleProvider, 
+  signInWithPopup, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  sendPasswordResetEmail, 
+  fetchSignInMethodsForEmail, 
+  saveBasketItems, 
+  getBasketItems 
+};

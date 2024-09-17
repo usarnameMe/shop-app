@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { auth, googleProvider, signInWithPopup } from '../firebase/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth, googleProvider, signInWithPopup, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from '../firebase/firebase';
 
 const Container = styled.div`
   width: 400px;
   margin: 50px auto;
-  padding: 20px;
+  padding: 30px 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #fff;
@@ -21,25 +20,42 @@ const Title = styled.h2`
 const Form = styled.form`
   display: flex;
   flex-direction: column;
+  gap: 20px;
+`;
+
+const InputWrapper = styled.div`
+  position: relative;
+  width: 100%;
 `;
 
 const Input = styled.input`
-  margin-bottom: 15px;
-  padding: 10px;
+  width: 100%;
+  padding: 12px 40px 12px 12px;
   font-size: 16px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  box-sizing: border-box;
+`;
+
+const ToggleVisibilityIcon = styled.span`
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #333;
 `;
 
 const AuthButton = styled.button`
-  padding: 10px;
+  padding: 12px;
   font-size: 16px;
   background-color: black;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  margin-bottom: 20px;
+  width: 100%;
 
   &:hover {
     background-color: #333;
@@ -80,20 +96,38 @@ const SignUp: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
+
     try {
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      if (signInMethods.length > 0) {
+        setError('An account with this email already exists. Please use a different email or sign in.');
+        return;
+      }
       await createUserWithEmailAndPassword(auth, email, password);
       setSuccessMessage('User registered successfully!');
       setEmail('');
       setPassword('');
       setFullName('');
     } catch (err) {
-      console.error(err);
-      setError((err as Error).message);
+      console.error('Error during sign up:', err);
+      const errorMessage = (err as Error).message;
+      if (errorMessage.includes('auth/operation-not-allowed')) {
+        setError('Sign-up method is not allowed. Please enable Email/Password in Firebase.');
+      } else if (errorMessage.includes('auth/weak-password')) {
+        setError('Password should be at least 6 characters long.');
+      } else if (errorMessage.includes('auth/invalid-email')) {
+        setError('Please enter a valid email address.');
+      } else if (errorMessage.includes('auth/network-request-failed')) {
+        setError('Network error. Please check your internet connection and try again.');
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     }
   };
 
@@ -102,8 +136,13 @@ const SignUp: React.FC = () => {
       await signInWithPopup(auth, googleProvider);
       alert('Signed up with Google!');
     } catch (err) {
-      console.error(err);
-      setError((err as Error).message);
+      console.error('Error during Google sign up:', err);
+      const errorMessage = (err as Error).message;
+      if (errorMessage.includes('auth/popup-closed-by-user')) {
+        setError('The sign-in popup was closed. Please try again.');
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     }
   };
 
@@ -111,35 +150,44 @@ const SignUp: React.FC = () => {
     <Container>
       <Title>Sign up to Shopy</Title>
       <Form onSubmit={handleSignUp}>
-        <Input
-          type="text"
-          placeholder="Full Name"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          autoComplete="name"
-          required
-        />
-        <Input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-          required
-        />
-        <Input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="new-password"
-          required
-        />
+        <InputWrapper>
+          <Input
+            type="text"
+            placeholder="Full Name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            autoComplete="name"
+            required
+          />
+        </InputWrapper>
+        <InputWrapper>
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
+        </InputWrapper>
+        <InputWrapper>
+          <Input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            required
+          />
+          <ToggleVisibilityIcon onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? '🙈' : '👁️'}
+          </ToggleVisibilityIcon>
+        </InputWrapper>
         <AuthButton type="submit">Sign Up</AuthButton>
       </Form>
       <Divider>OR</Divider>
       <GoogleButton onClick={handleGoogleSignUp}>Continue with Google</GoogleButton>
-      {error && <p style={{ color: 'red' }}>Something went wrong </p>}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       {successMessage && <p style={{ color: 'green' }}>{successMessage}</p>}
       <RedirectText>
         Already have an account? <a href="/signin">Sign In</a>

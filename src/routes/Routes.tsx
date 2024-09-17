@@ -6,6 +6,7 @@ import ProductDetails from '../pages/ProductDetails';
 import Login from '../pages/Login';
 import SignIn from '../pages/SignIn';
 import SignUp from '../pages/SignUp';
+import ForgotPassword from '../pages/ForgotPassword';
 
 const AppRoutes: React.FC = () => (
   <Routes>
@@ -15,6 +16,7 @@ const AppRoutes: React.FC = () => (
     <Route path="/login" element={<Login />} />
     <Route path="/signin" element={<SignIn />} />
     <Route path="/signup" element={<SignUp />} />
+    <Route path="/forgot-password" element={<ForgotPassword/>} />
   </Routes>
 );
 
